@@ -7,7 +7,7 @@ import { GoogleGenAI } from "@google/genai";
 
 // Using TypeScript Interface in System Instruction reduces token count and ambiguity, 
 // helping to prevent RPC errors on complex prompts.
-const SYSTEM_INSTRUCTION = `
+const SYSTEM_INSTRUCTION = `;
 You are AuraPost Sutradhar, a strategic social media planning engine.
 
 Your goal is to analyze the input JSON (client details + links + optional competitors)
