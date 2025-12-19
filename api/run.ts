@@ -7,15 +7,18 @@ export default async function handler(req: Request) {
 
   const body = await req.text();
 
-  const genAI = new GoogleGenerativeAI(
-    process.env.VITE_GEMINI_API_KEY as string
-  );
+  const genAI = new GoogleGenAI({
+    apiKey: process.env.VITE_GEMINI_API_KEY as string,
+  });
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+  });
 
   const result = await model.generateContent(body);
 
-  return new Response(result.response.text(), {
-    headers: { "Content-Type": "application/json" }
-  });
+  return new Response(
+    JSON.stringify({ output: result.response.text() }),
+    { headers: { "Content-Type": "application/json" } }
+  );
 }
