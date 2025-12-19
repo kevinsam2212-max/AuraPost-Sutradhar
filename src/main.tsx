@@ -1,12 +1,7 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
-import { GoogleGenAI } from "@google/genai";
 
-// -- CONSTANTS --
-
-// Using TypeScript Interface in System Instruction reduces token count and ambiguity, 
-// helping to prevent RPC errors on complex prompts.
+// ---- CONSTANT ----
 const SYSTEM_INSTRUCTION = `;
 You are AuraPost Sutradhar, a strategic social media planning engine.
 
@@ -21,6 +16,7 @@ RULES:
 5. Strictly follow the TypeScript interface below.
 `;
 
+// ---- TYPES ----
 interface Output {
   persona: {
     role: string;
@@ -29,7 +25,12 @@ interface Output {
     audience: string;
     toneStyle: string;
     valueProp: string;
-    maturityLevel: "Beginner" | "Emerging" | "Professional" | "Expert" | "Authority";
+    maturityLevel:
+      | "Beginner"
+      | "Emerging"
+      | "Professional"
+      | "Expert"
+      | "Authority";
     summary: string;
   };
   audienceInsight: {
@@ -38,3 +39,18 @@ interface Output {
     commonObjections: string[];
     keywords: string[];
     buyingTriggers: string[];
+  };
+}
+
+// ---- APP ----
+const App = () => {
+  return (
+    <div style={{ padding: 24, fontFamily: "Inter, sans-serif" }}>
+      <h1>AuraPost Sutradhar</h1>
+      <p>System ready. Instruction loaded.</p>
+    </div>
+  );
+};
+
+const root = createRoot(document.getElementById("root")!);
+root.render(<App />);
