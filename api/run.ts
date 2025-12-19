@@ -15,10 +15,10 @@ export default async function handler(req: Request) {
     );
   }
 
-  const data = await req.json().catch(() => null);
-  const prompt = data?.prompt ?? data?.text ?? "";
+  const body = await req.json().catch(() => ({} as any));
+  const prompt = body?.prompt ?? body?.text ?? "";
 
-  if (!prompt || typeof prompt !== "string") {
+  if (typeof prompt !== "string" || !prompt.trim()) {
     return new Response(JSON.stringify({ error: "Send { prompt: string }" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
