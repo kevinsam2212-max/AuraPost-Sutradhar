@@ -1,63 +1,71 @@
 import { useState } from "react";
 
 export default function App() {
-  const [input, setInput] = useState(`{
-  "client": {
-    "brand": "Example Brand",
-    "industry": "Digital Marketing",
-    "goal": "Grow Instagram"
-  }
-}`);
+  const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  async function runAudit() {
+  const runAuraPost = async () => {
     setLoading(true);
+    setError("");
     setOutput("");
 
     try {
       const res = await fetch("/api/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: input
+        headers: { "Content-Type": "text/plain" },
+        body: input,
       });
 
-      const data = await res.text();
-      setOutput(data);
-    } catch (e) {
-      setOutput("❌ Error running audit");
-    }
+      if (!res.ok) {
+        throw new Error("API error");
+      }
 
-    setLoading(false);
-  }
+      const text = await res.text();
+      setOutput(text);
+    } catch (err) {
+      setError("Something went wrong. Check API.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ padding: 32, fontFamily: "Inter, sans-serif" }}>
+    <div style={{ padding: 30, fontFamily: "Arial" }}>
       <h1>AuraPost Sutradhar</h1>
-      <p>Strategic Social Media Audit Tool</p>
+      <p>AI Social Media Planning Engine</p>
 
-      <h3>Input JSON</h3>
       <textarea
-        style={{ width: "100%", height: 200 }}
+        rows={10}
+        style={{ width: "100%", marginTop: 10 }}
+        placeholder="Paste input JSON here..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
 
       <br /><br />
-      <button onClick={runAudit} disabled={loading}>
-        {loading ? "Analyzing..." : "Run Audit"}
+
+      <button onClick={runAuraPost} disabled={loading}>
+        {loading ? "Generating..." : "Generate Output"}
       </button>
 
-      <h3 style={{ marginTop: 30 }}>Output</h3>
-      <pre
-        style={{
-          background: "#f5f5f5",
-          padding: 16,
-          whiteSpace: "pre-wrap"
-        }}
-      >
-        {output}
-      </pre>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {output && (
+        <>
+          <h3>Output</h3>
+          <pre
+            style={{
+              background: "#f4f4f4",
+              padding: 15,
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {output}
+          </pre>
+        </>
+      )}
     </div>
   );
 }
