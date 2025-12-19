@@ -1,5 +1,3 @@
-export const config = { runtime: "edge" };
-
 import { GoogleGenAI } from "@google/genai";
 
 export default async function handler(req: Request) {
@@ -7,29 +5,35 @@ export default async function handler(req: Request) {
     return new Response("Method not allowed", { status: 405 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: "Missing GEMINI_API_KEY in Vercel env vars" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  const body = await req.json().catch(() => ({} as any));
-  const prompt = body?.prompt ?? body?.text ?? "";
-
-  if (typeof prompt !== "string" || !prompt.trim()) {
-    return new Response(JSON.stringify({ error: "Send { prompt: string }" }), {
-      status: 400,
+    return new Response(JSON.stringify({ error: "Missing API key in Vercel env" }), {
+      status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  const ai = new GoogleGenAI({ apiKey });
-  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-  const result = await model.generateContent(prompt);
+  let body: any = {};
+  try {
+    body = await req.json();
+  } catch {}
 
-  return new Response(result.response.text(), {
+  const prompt =
+    typeof body?.prompt === "string" && body.prompt.trim()
+      ? body.prompt
+      : JSON.stringify(body);
+
+  const ai = new GoogleGenAI({ apiKey });
+
+  const result = await ai.models.generateContent({
+    model: "gemini-1.5-flash",
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+  });
+
+  const text =
+    result?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || "").join("") || "";
+
+  return new Response(JSON.stringify({ text }), {
     headers: { "Content-Type": "application/json" },
   });
 }
