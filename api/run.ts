@@ -1,36 +1,35 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+export const config = { runtime: "edge" };
+
+import { GoogleGenAI } from "@google/genai";
 
 export default async function handler(req: Request) {
-  try {
-    if (req.method !== "POST") {
-      return new Response("Method not allowed", { status: 405 });
-    }
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return new Response("Missing GEMINI_API_KEY in environment variables", {
-        status: 500,
-      });
-    }
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return new Response(
+      JSON.stringify({ error: "Missing GEMINI_API_KEY in Vercel env vars" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
-    const bodyText = await req.text();
+  const data = await req.json().catch(() => null);
+  const prompt = data?.prompt ?? data?.text ?? "";
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const result = await model.generateContent(bodyText);
-    const text = result.response.text();
-
-    return new Response(text, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-store",
-      },
-    });
-  } catch (err: any) {
-    return new Response(`Server error: ${err?.message || "Unknown error"}`, {
-      status: 500,
+  if (!prompt || typeof prompt !== "string") {
+    return new Response(JSON.stringify({ error: "Send { prompt: string }" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   }
+
+  const ai = new GoogleGenAI({ apiKey });
+  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const result = await model.generateContent(prompt);
+
+  return new Response(result.response.text(), {
+    headers: { "Content-Type": "application/json" },
+  });
 }
